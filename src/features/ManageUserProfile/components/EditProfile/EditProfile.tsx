@@ -1,41 +1,22 @@
 import { useForm, FormProvider } from "react-hook-form";
 import {
-    Box,
-    Typography,
-    Divider,
-    Grid,
-    Paper,
-    Accordion,
-    AccordionSummary,
-    AccordionDetails,
-    Checkbox,
-    FormControlLabel,
-    Stack,
+    Box, Typography, Divider, Grid, Paper, Accordion, AccordionSummary, AccordionDetails, Checkbox, FormControlLabel, Stack,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useEffect, useState } from "react";
 import {
-    CustomButton,
-    CustomSelect,
-    CustomTextField,
-    MultipulCustomSelect,
+    CustomButton, CustomSelect, CustomTextField, MultipulCustomSelect,
 } from "components";
 import {
-    COLORS,
-    GenderTypes,
-    LANGUAGES,
-    MARITAL_STATUS,
-    Religions,
-    SoftSkills,
-    TechnicalSkills,
+    COLORS, GenderTypes, LANGUAGES, MARITAL_STATUS, Religions, SoftSkills, TechnicalSkills,
 } from "constant";
 import { useParams } from "react-router";
 import useUpdateUser from "features/ManageUserProfile/hooks/useUpdateUser";
 import useUser from "features/ManageUserProfile/hooks/useUser";
-import { useToast } from "context";
 import { doc, Timestamp, updateDoc } from "firebase/firestore";
-import { db } from "libs";
 import { User } from "firebase/auth";
+import { db } from "libs";
+import { useToast } from "context";
 
 const Section = ({ title }: { title: string }) => (
     <Box sx={{ mb: 2 }}>
@@ -82,25 +63,25 @@ const EditProfile = () => {
         }
     };
 
-    useEffect(() => {
-        if (user) {
-            const formattedUser: Partial<User> & Record<string, any> = {
-                ...user,
-                dateOfBirth: toDateInputValue(user.dateOfBirth),
-                updatedAt: toDateInputValue(user.updatedAt),
-                lastLogin: toDateInputValue(user.lastLogin),
-                createdAt: toDateInputValue(user.createdAt),
-                workExperience: user.workExperience
-                    ? {
-                        ...user.workExperience,
-                        startDate: toDateInputValue(user.workExperience.startDate),
-                        endDate: toDateInputValue(user.workExperience.endDate),
-                    }
-                    : undefined,
-            };
-            reset(formattedUser);
-        }
-    }, [user, reset]);
+    // useEffect(() => {
+    //     if (user) {
+    //         const formattedUser: Partial<User> & Record<string, any> = {
+    //             ...user,
+    //             dateOfBirth: toDateInputValue(user.dateOfBirth),
+    //             updatedAt: toDateInputValue(user.updatedAt),
+    //             lastLogin: toDateInputValue(user.lastLogin),
+    //             createdAt: toDateInputValue(user.createdAt),
+    //             workExperience: user.workExperience
+    //                 ? {
+    //                     ...user.workExperience,
+    //                     startDate: toDateInputValue(user.workExperience.startDate),
+    //                     endDate: toDateInputValue(user.workExperience.endDate),
+    //                 }
+    //                 : undefined,
+    //         };
+    //         reset(formattedUser);
+    //     }
+    // }, [user, reset]);
 
     const onSubmit = (data: User) => {
         if (!UserId) return;

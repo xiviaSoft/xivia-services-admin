@@ -4,7 +4,7 @@ export type FormData = {
   email: string;
   password: string;
   phoneNumber?: string;
-  dateOfBirth?: Date;
+  dateOfBirth?: Date | string;
   gender: string;
   maritalStatus?: string;
   religion?: string;
@@ -20,8 +20,8 @@ export type FormData = {
   fieldOfStudy: string;
   bio: string;
   role: string;
-  startDate: Date;
-  endDate?: Date;
+  startDate:Date | string;
+  endDate?: Date | string;
   isCurrent: boolean;
   facebook?: string;
   twitter?: string;
