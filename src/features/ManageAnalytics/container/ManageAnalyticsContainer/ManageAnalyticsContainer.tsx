@@ -99,7 +99,6 @@ const ManageServicesContainer = () => {
     setOpenDialog(false);
     fetchServices();
   };
-
   return (
     <>
       <PageHeader title="Manage Services" />
@@ -191,9 +190,9 @@ const ManageServicesContainer = () => {
               <CustomTextField
                 placeholder="#FFD877"
                 name="bgcolor"
-                label="Background Color"
+                label="Background Color For The Icon Box"
                 type="color"
-
+          
               />
             </Grid>
           </Grid>

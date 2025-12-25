@@ -29,6 +29,7 @@ interface CustomTextFieldProps {
     showSearchIcon?: boolean;
 }
 
+// validation rules
 const getDefaultRules = (fieldName: string): RegisterOptions => {
     switch (fieldName) {
         case "email":
@@ -41,20 +42,9 @@ const getDefaultRules = (fieldName: string): RegisterOptions => {
             };
 
         case "firstName":
-            return {
-                required: "firstName is required",
-                maxLength: {
-                    value: 25,
-                    message: "Max 25 characters allowed",
-                },
-                pattern: {
-                    value: /^[A-Za-z ]+$/,
-                    message: "Only alphabets allowed",
-                },
-            };
         case "lastName":
             return {
-                required: "lastName is required",
+                required: `${fieldName} is required`,
                 maxLength: {
                     value: 25,
                     message: "Max 25 characters allowed",
@@ -74,7 +64,7 @@ const getDefaultRules = (fieldName: string): RegisterOptions => {
                 },
                 maxLength: {
                     value: 25,
-                    message: 'Password must be less then 25 characters'
+                    message: "Password must be less than 25 characters",
                 }
             };
 
@@ -132,6 +122,8 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({
         [allowOnly, maxLength]
     );
 
+    const isColorField = type === "color";
+
     return (
         <Box width={{ md: width, sm: width, xs: "100%" }}>
             {label && (
@@ -155,6 +147,7 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({
                 render={({ field, fieldState }) => (
                     <TextField
                         {...field}
+                        type={type}
                         variant="outlined"
                         disabled={disabled}
                         placeholder={placeholder || ""}
@@ -164,28 +157,45 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({
                         maxRows={maxRows}
                         error={!!fieldState.error}
                         helperText={showHelperText ? fieldState.error?.message : ""}
-                        type={type}
                         autoComplete={autoComplete}
                         InputProps={{
                             startAdornment:
-                                showSearchIcon && (
+                                showSearchIcon && !isColorField && (
                                     <InputAdornment position="start">
                                         <SearchIcon sx={{ color: "gray" }} />
                                     </InputAdornment>
                                 ),
-                            endAdornment: endAdornment,
+                            endAdornment: !isColorField ? endAdornment : null,
+
                             sx: {
                                 backgroundColor: COLORS.gray.lighter,
                                 border: "none",
-                                height: multiline ? "auto" : height || "56px",
-                                paddingRight: "8px",
-                                "& fieldset": { border: "none" },
+                                height: multiline ? "auto" : height || (isColorField ? "48px" : "56px"),
+                                paddingRight: isColorField ? 0 : "8px",
+                                "& fieldset": { border: isColorField ? "1px solid #ccc" : "none" },
+
+                                ...(isColorField && {
+                                    padding: 0,
+                                    width: "64px",
+                                    borderRadius: "8px",
+                                    overflow: "hidden",
+                                    cursor: "pointer",
+                                }),
                             },
                         }}
                         inputProps={{
-                            maxLength: maxLength,
+                            maxLength,
                             onInput: handleInputChange,
                             readOnly,
+                            ...(isColorField && {
+                                style: {
+                                    padding: 0,
+                                    border: "none",
+                                    width: "100%",
+                                    height: "100%",
+                                    cursor: "pointer",
+                                },
+                            }),
                         }}
                         onBlur={(event) => {
                             field.onBlur();
