@@ -37,3 +37,11 @@ export type MemberFormData = {
   facebook?: string;
   linkedin?: string;
 };
+
+export type footerFormData = {
+  id:any,
+  email:string,
+  phone:string | number,
+  address:string,
+  footerPara:string
+}

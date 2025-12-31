@@ -7,3 +7,4 @@ export * from "./ReportDetails";
 export * from "./ManageAnalytics";
 export * from "./ManageUserProfile";
 export * from "./ManangeAddUser";
+export * from './ManageFooter'

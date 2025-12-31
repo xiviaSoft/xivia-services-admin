@@ -19,8 +19,8 @@ export const ROUTES = {
   SAFETY_DETAILS: "/report-details",
   ANALYTICS: "/analytics",
   SETTINGS: "/settings",
-  AddProjectForm: "/addprojectform"
-
+  AddProjectForm: "/addprojectform",
+  FOOTER:'/footer'
 
 
 

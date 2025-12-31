@@ -10,3 +10,4 @@ export { default as Analytics } from "./Analytics/Analytics";
 export { default as UserProfile } from "./UserProfile/UserProfile";
 export { default as AddUser } from "./AddUser/AddUser";
 export {default as AddProjectForm } from "./AddProjectForm/AddProjectForm"
+export {default as footer} from './UpdateFooter/Footer'

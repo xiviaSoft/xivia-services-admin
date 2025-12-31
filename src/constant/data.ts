@@ -30,6 +30,11 @@ export const NAVDATA = [
     title: 'service'
   },
   {
+    icon: DataUsageOutlined,
+    path: "/footer",
+    title: 'Conatct'
+  },
+  {
     icon: Settings,
     path: "/settings",
     title: 'Setting'
