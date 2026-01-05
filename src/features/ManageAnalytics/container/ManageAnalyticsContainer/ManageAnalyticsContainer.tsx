@@ -1,3 +1,5 @@
+"use client";
+
 import {
   CustomButton,
   CustomDialogBox,
@@ -7,10 +9,31 @@ import {
 
 import { Add, Delete, Edit } from "@mui/icons-material";
 import {
-  Box, Table, TableHead, TableBody, TableRow, TableCell, IconButton, Grid, Typography,
+  Box,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  IconButton,
+  Grid,
+  Typography,
+  Card,
+  CardContent,
+  Stack,
+  TableContainer,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 
-import { collection, getDocs, deleteDoc, doc, addDoc, updateDoc, } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  deleteDoc,
+  doc,
+  addDoc,
+  updateDoc,
+} from "firebase/firestore";
 import { FormProvider, useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { db } from "libs";
@@ -25,13 +48,15 @@ interface ServiceItem {
 
 const ManageServicesContainer = () => {
   const methods = useForm();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const [openDialog, setOpenDialog] = useState(false);
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
 
-  /* 🔥 FETCH SERVICES*/
+  /* FETCH SERVICES */
   const fetchServices = async () => {
     try {
       setLoading(true);
@@ -50,29 +75,19 @@ const ManageServicesContainer = () => {
     fetchServices();
   }, []);
 
-  /* 🗑 DELETE SERVICE */
+  /* DELETE */
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this service?")) return;
-
     await deleteDoc(doc(db, "services", id));
     fetchServices();
   };
 
-  /* * ✏ UPDATE — OPEN DIALOG WITH VALUES FILLED */
   const handleEdit = (service: ServiceItem) => {
     setEditId(service.id);
-
-    methods.reset({
-      icon: service.icon,
-      text: service.text,
-      detail: service.detail,
-      bgcolor: service.bgcolor,
-    });
-
+    methods.reset(service);
     setOpenDialog(true);
   };
 
-  /*   * ➕ ADD — CLEAR FORM & OPEN DIALOG */
   const handleAdd = () => {
     setEditId(null);
     methods.reset({
@@ -84,38 +99,70 @@ const ManageServicesContainer = () => {
     setOpenDialog(true);
   };
 
-  /* * ✅ SAVE (ADD OR UPDATE)*/
   const handleConfirmDialog = async () => {
     const data = methods.getValues();
-
-    if (editId) {
-      // UPDATE
-      await updateDoc(doc(db, "services", editId), data);
-    } else {
-      // ADD
-      await addDoc(collection(db, "services"), data);
-    }
+    editId
+      ? await updateDoc(doc(db, "services", editId), data)
+      : await addDoc(collection(db, "services"), data);
 
     setOpenDialog(false);
     fetchServices();
   };
+
   return (
     <>
       <PageHeader title="Manage Services" />
 
-      <CustomButton
-        variant="contained"
-        title="Add Service"
-        onClick={handleAdd}
-        endIcon={<Add />}
-        sx={{ mb: 3, }}
-      />
+      <Box display="flex" justifyContent="space-between" alignItems={'center'} mb={3}>
+        <Typography>Current Services ({services.length})</Typography>
+        <CustomButton
+          variant="contained"
+          title="Add Service"
+          onClick={handleAdd}
+          endIcon={<Add />}
+        />
+      </Box>
 
-      {/* SERVICES TABLE */}
-      <Box my={2}>
-        {loading ? (
-          <Typography>Loading...</Typography>
-        ) : (
+      {/* CONTENT */}
+      {loading ? (
+        <Typography>Loading...</Typography>
+      ) : isMobile ? (
+        /* MOBILE VIEW (CARDS) */
+        <Grid container spacing={2}>
+          {services.map((s) => (
+            <Grid size={{ xs: 12 }} key={s.id}>
+              <Card>
+                <CardContent>
+                  <Stack spacing={1}>
+                    <Typography fontWeight={600}>
+                      {s.icon} {s.text}
+                    </Typography>
+
+                    <Typography variant="body2">
+                      {s.detail}
+                    </Typography>
+
+                    <Typography variant="caption">
+                      Bg Color: {s.bgcolor}
+                    </Typography>
+
+                    <Stack direction="row" justifyContent="flex-end">
+                      <IconButton onClick={() => handleEdit(s)}>
+                        <Edit color="primary" />
+                      </IconButton>
+                      <IconButton onClick={() => handleDelete(s.id)}>
+                        <Delete color="error" />
+                      </IconButton>
+                    </Stack>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      ) : (
+        /* DESKTOP VIEW (TABLE) */
+        <TableContainer sx={{ overflowX: "auto" }}>
           <Table>
             <TableHead>
               <TableRow>
@@ -123,7 +170,7 @@ const ManageServicesContainer = () => {
                 <TableCell>Title</TableCell>
                 <TableCell>Detail</TableCell>
                 <TableCell>Bg Color</TableCell>
-                <TableCell>Actions</TableCell>
+                <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
 
@@ -138,12 +185,10 @@ const ManageServicesContainer = () => {
                       : s.detail}
                   </TableCell>
                   <TableCell>{s.bgcolor}</TableCell>
-
-                  <TableCell>
+                  <TableCell align="right">
                     <IconButton onClick={() => handleEdit(s)}>
                       <Edit color="primary" />
                     </IconButton>
-
                     <IconButton onClick={() => handleDelete(s.id)}>
                       <Delete color="error" />
                     </IconButton>
@@ -152,10 +197,10 @@ const ManageServicesContainer = () => {
               ))}
             </TableBody>
           </Table>
-        )}
-      </Box>
+        </TableContainer>
+      )}
 
-      {/*ADD / UPDATE SERVICE DIALOG*/}
+      {/* ADD / UPDATE DIALOG */}
       <CustomDialogBox
         open={openDialog}
         onClose={() => setOpenDialog(false)}
@@ -167,32 +212,29 @@ const ManageServicesContainer = () => {
       >
         <FormProvider {...methods}>
           <Grid container spacing={2}>
-            <Grid size={12}>
-              <CustomTextField placeholder="icon" name="icon" label="Service Icon" type="text" />
+            <Grid size={{ xs: 12 }}>
+              <CustomTextField type="text" placeholder="Icon Directry" name="icon" label="Service Icon" />
             </Grid>
 
-            <Grid size={12}>
-              <CustomTextField placeholder="Title" name="text" label="Service Title" type="text" />
+            <Grid size={{ xs: 12 }}>
+              <CustomTextField type="text" placeholder="Title" name="text" label="Service Title" />
             </Grid>
 
-            <Grid size={12}>
+            <Grid size={{ xs: 12 }}>
               <CustomTextField
+                type="text"
+                placeholder="Descripiton"
                 name="detail"
                 label="Service Detail"
-                type="text"
-                placeholder="Description"
-                multiline
-                minRows={4}
               />
             </Grid>
 
-            <Grid size={12}>
+            <Grid size={{ xs: 12 }}>
               <CustomTextField
-                placeholder="#FFD877"
+                placeholder=""
                 name="bgcolor"
-                label="Background Color For The Icon Box"
+                label="Background Color"
                 type="color"
-          
               />
             </Grid>
           </Grid>

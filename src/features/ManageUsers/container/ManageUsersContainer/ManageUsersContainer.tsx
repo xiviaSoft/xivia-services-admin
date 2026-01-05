@@ -1,5 +1,10 @@
-import { CustomButton, PageHeader, CustomDialogBox } from "components";
-import { Box, Button, Stack, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
+"use client";
+
+import { CustomButton, PageHeader, CustomDialogBox, } from "components";
+import {
+    Box, Button, Stack, Table, TableBody, TableCell, TableHead, TableRow, Card, CardContent, Typography, TableContainer, Grid, useTheme, useMediaQuery,
+} from "@mui/material";
+
 import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
 import TeamMember from "features/ManageUsers/components/GetTeam/Team";
 import { ManangeAddUserContainer } from "features/ManangeAddUser";
@@ -9,7 +14,7 @@ import { Add } from "@mui/icons-material";
 import { db } from "libs";
 
 export interface Team {
-    id?:any;
+    id?: string | any;
     name: string;
     description: string;
     role: string;
@@ -18,14 +23,19 @@ export interface Team {
 
 const ManageMemberContainer = () => {
     const methods = useForm();
-    const [team, setTeam] = useState<any[]>([]);
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-    // Fetch team members
+    const [team, setTeam] = useState<Team[]>([]);
+    const [openDialog, setOpenDialog] = useState(false);
+    const [selectedMember, setSelectedMember] = useState<Team | null>(null);
+
+    /* FETCH TEAM */
     const fetchTeam = async () => {
-        const getRef = await getDocs(collection(db, "team-member"));
-        const items = getRef.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data() as Team
+        const snap = await getDocs(collection(db, "team-member"));
+        const items = snap.docs.map((d) => ({
+            id: d.id,
+            ...(d.data() as Team),
         }));
         setTeam(items);
     };
@@ -34,96 +44,148 @@ const ManageMemberContainer = () => {
         fetchTeam();
     }, []);
 
-    // Dialog state for Add/Edit
-    const [openDialog, setOpenDialog] = useState(false);
-    const [selectedMember, setSelectedMember] = useState<Team | null>(null);
-
     const handleOpenDialog = (member?: Team) => {
-        if (member) setSelectedMember(member);
-        else setSelectedMember(null);
+        setSelectedMember(member || null);
         setOpenDialog(true);
     };
 
     const handleCloseDialog = () => setOpenDialog(false);
 
-    // Delete member
+    /* DELETE */
     const delMember = async (id: string) => {
         await deleteDoc(doc(db, "team-member", id));
-        alert("Member deleted successfully");
-        setTeam(prev => prev.filter(mem => mem.id !== id));
+        setTeam((prev) => prev.filter((mem) => mem.id !== id));
     };
 
     return (
         <FormProvider {...methods}>
-            <Stack gap={2}>
+            <Stack gap={3}>
                 <PageHeader title="Manage Employees" />
 
-                <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+                <Box display="flex" justifyContent="space-between" alignItems={'center'}>
+                    <Typography>Current Member ({team.length})</Typography>
                     <CustomButton
                         variant="contained"
                         title="Add New Employee"
                         onClick={() => handleOpenDialog()}
                         endIcon={<Add />}
                     />
-                </Stack>
+                </Box>
 
-                {/* Add/Edit Dialog */}
-                <CustomDialogBox open={openDialog} onClose={handleCloseDialog} title={selectedMember ? "Update Employee" : "Add Employee"}>
+                {/* ADD / UPDATE DIALOG */}
+                <CustomDialogBox
+                    open={openDialog}
+                    onClose={handleCloseDialog}
+                    title={selectedMember ? "Update Employee" : "Add Employee"}
+                >
                     <ManangeAddUserContainer
                         open={handleCloseDialog}
-                        initialData={selectedMember ? {
-                            firstName: selectedMember.name.split(" ")[0],
-                            lastName: selectedMember.name.split(" ").slice(1).join(" "),
-                            about: selectedMember.description,
-                            role: selectedMember.role,
-                            memberRole: [], 
-                            facebook: "",
-                            linkedin: "",
-                        } : undefined}
+                        initialData={
+                            selectedMember
+                                ? {
+                                    firstName: selectedMember.name.split(" ")[0],
+                                    lastName: selectedMember.name.split(" ").slice(1).join(" "),
+                                    about: selectedMember.description,
+                                    role: selectedMember.role,
+                                    memberRole: [],
+                                    facebook: "",
+                                    linkedin: "",
+                                }
+                                : undefined
+                        }
                         id={selectedMember?.id}
-                        onSuccess={fetchTeam} 
+                        onSuccess={fetchTeam}
                     />
                 </CustomDialogBox>
 
-                {/* Table */}
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Image</TableCell>
-                            <TableCell>Name</TableCell>
-                            <TableCell>Description</TableCell>
-                            <TableCell>Role</TableCell>
-                            <TableCell>Action</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {team.map(mem => (
-                            <TeamMember
-                                key={mem.id}
-                                id={mem.id}
-                                name={mem.name}
-                                description={mem.description}
-                                role={mem.role}
-                                images={mem.images}
-                            >
-                                <Button
-                                    variant="contained"
-                                    onClick={() => delMember(mem.id)}
-                                    sx={{ padding: "8px", bgcolor: "red", mr: 2 }}
-                                >
-                                    Delete
-                                </Button>
-                                <Button
-                                    variant="contained"
-                                    onClick={() => handleOpenDialog(mem)}
-                                    sx={{ padding: "8px", bgcolor: "teal" }}
-                                >
-                                    Update
-                                </Button>
-                            </TeamMember>
+                {/* CONTENT */}
+                {isMobile ? (
+                    /* MOBILE VIEW */
+                    <Grid container spacing={2}>
+                        {team.map((mem) => (
+                            <Grid size={{ xs: 12 }} key={mem.id}>
+                                <Card>
+                                    <CardContent>
+                                        <Stack spacing={1}>
+                                            <Typography fontWeight={600}>
+                                                {mem.name}
+                                            </Typography>
+
+                                            <Typography variant="body2">
+                                                {mem.description}
+                                            </Typography>
+
+                                            <Typography variant="caption">
+                                                Role: {mem.role}
+                                            </Typography>
+
+                                            <Stack direction="row" justifyContent="flex-end" gap={1}>
+                                                <Button
+                                                    variant="contained"
+                                                    color="error"
+                                                    onClick={() => delMember(mem.id!)}
+                                                >
+                                                    Delete
+                                                </Button>
+
+                                                <Button
+                                                    variant="contained"
+                                                    onClick={() => handleOpenDialog(mem)}
+                                                >
+                                                    Update
+                                                </Button>
+                                            </Stack>
+                                        </Stack>
+                                    </CardContent>
+                                </Card>
+                            </Grid>
                         ))}
-                    </TableBody>
-                </Table>
+                    </Grid>
+                ) : (
+                    /* DESKTOP VIEW */
+                    <TableContainer sx={{ overflowX: "auto" }}>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Image</TableCell>
+                                    <TableCell>Name</TableCell>
+                                    <TableCell>Description</TableCell>
+                                    <TableCell>Role</TableCell>
+                                    <TableCell align="right">Action</TableCell>
+                                </TableRow>
+                            </TableHead>
+
+                            <TableBody>
+                                {team.map((mem) => (
+                                    <TeamMember
+                                        key={mem.id}
+                                        id={mem.id}
+                                        name={mem.name}
+                                        description={mem.description}
+                                        role={mem.role}
+                                        images={mem.images}
+                                    >
+                                        <Button
+                                            variant="contained"
+                                            color="error"
+                                            onClick={() => delMember(mem.id!)}
+                                            sx={{ mr: 1 }}
+                                        >
+                                            Delete
+                                        </Button>
+
+                                        <Button
+                                            variant="contained"
+                                            onClick={() => handleOpenDialog(mem)}
+                                        >
+                                            Update
+                                        </Button>
+                                    </TeamMember>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                )}
             </Stack>
         </FormProvider>
     );

@@ -1,12 +1,5 @@
 
-import {
-  DataUsageOutlined,
-  EditOutlined,
-  ManageAccountsOutlined,
-  PeopleAltOutlined,
-  Settings,
-} from "@mui/icons-material";
-import { title } from "process";
+import { Collections, DataUsageOutlined, EditOutlined, ManageAccountsOutlined, PeopleAltOutlined, Phone, Settings, } from "@mui/icons-material";
 
 export const NAVDATA = [
   {
@@ -25,12 +18,17 @@ export const NAVDATA = [
     title: 'project'
   },
   {
+    icon: Collections,
+    path: "/about",
+    title: 'Gallery'
+  },
+  {
     icon: DataUsageOutlined,
     path: "/analytics",
     title: 'service'
   },
   {
-    icon: DataUsageOutlined,
+    icon: Phone,
     path: "/footer",
     title: 'Conatct'
   },

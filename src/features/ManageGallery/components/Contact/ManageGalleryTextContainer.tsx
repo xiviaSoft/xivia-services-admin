@@ -3,8 +3,10 @@ import { CustomButton, CustomTextField } from "components";
 import { FormProvider, useForm } from "react-hook-form";
 import { doc, updateDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
-import { footerFormData } from "types";
+import { GalleryFormData } from "types";
 import { db } from "libs";
+
+
 
 const Section = ({ title }: { title: string }) => (
     <Box sx={{ mb: 2 }}>
@@ -16,43 +18,41 @@ const Section = ({ title }: { title: string }) => (
 );
 
 interface Props {
-    initialData?: footerFormData;
     id: string;
+    initialData: GalleryFormData;
     onSuccess?: () => void;
 }
 
-const ManageFooterContactContainer: React.FC<Props> = ({
-    initialData,
-    id,
-    onSuccess,
-}) => {
-    const methods = useForm<footerFormData>({
-        defaultValues: initialData || {
-            footerPara: "",
-            email: "",
-            phone: "",
-            address: "",
-        },
+const ManageGalleryTextContainer: React.FC<Props> = ({ id, initialData, onSuccess, }) => {
+    const methods = useForm<GalleryFormData>({
+        defaultValues: initialData,
     });
 
-    const { reset, handleSubmit } = methods;
+    const { handleSubmit, reset } = methods;
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (initialData) {
-            reset(initialData);
-        }
+        reset(initialData);
     }, [initialData, reset]);
 
-    const onSubmit = async (data: footerFormData) => {
+    const onSubmit = async (data: GalleryFormData) => {
+        if (!id) {
+            console.error("Document ID missing");
+            return;
+        }
+
         try {
             setLoading(true);
-            await updateDoc(doc(db, "contact", id), data);
-            alert("Footer contact updated successfully");
+
+            await updateDoc(doc(db, "gallery-text", id), {
+                ...data,
+            });
+
+            alert("Gallery content updated successfully");
             onSuccess?.();
         } catch (error) {
             console.error(error);
-            alert("Failed to update footer contact");
+            alert("Failed to update gallery content");
         } finally {
             setLoading(false);
         }
@@ -65,51 +65,50 @@ const ManageFooterContactContainer: React.FC<Props> = ({
                 onSubmit={handleSubmit(onSubmit)}
                 sx={{ display: "flex", flexDirection: "column", gap: 2 }}
             >
-                {/* <Section title="Footer Content" /> */}
-                <Typography fontWeight={'bold'}>Footer Content</Typography>
+                <Section title="Portfolio Section" />
 
                 <Grid container spacing={2}>
                     <Grid size={{ xs: 12 }}>
                         <CustomTextField
                             type="text"
-                            name="footerPara"
-                            label="Footer Description"
-                            placeholder="Footer description text"
+                            name="title"
+                            label="Main Title"
+                            placeholder="Enter portfolio title"
+                        />
+                    </Grid>
+
+                    <Grid size={{ xs: 12 }}>
+                        <CustomTextField
+                            type="text"
+                            name="description"
+                            label="Main Description"
+                            placeholder="Enter portfolio description"
                             multiline
-                            minRows={2}
+                            minRows={3}
                         />
                     </Grid>
                 </Grid>
 
-                <Section title="Contact Information" />
+                <Section title="About Us Section" />
 
                 <Grid container spacing={2}>
-                    <Grid size={{ md: 6, xs: 12 }}>
+                    <Grid size={{ xs: 12 }}>
                         <CustomTextField
                             type="text"
-                            name="email"
-                            label="Email"
-                            placeholder="Enter email"
-                        />
-                    </Grid>
-
-                    <Grid size={{ md: 6, xs: 12 }}>
-                        <CustomTextField
-                            type="number"
-                            name="phone"
-                            label="Phone"
-                            placeholder="Enter phone number"
+                            name="aboutUsTitle"
+                            label="About Us Title"
+                            placeholder="Enter About Us title"
                         />
                     </Grid>
 
                     <Grid size={{ xs: 12 }}>
                         <CustomTextField
                             type="text"
-                            name="address"
-                            label="Address"
-                            placeholder="Enter address"
+                            name="aboutUsDescription"
+                            label="About Us Description"
+                            placeholder="Enter About Us description"
                             multiline
-                            minRows={2}
+                            minRows={3}
                         />
                     </Grid>
                 </Grid>
@@ -131,4 +130,4 @@ const ManageFooterContactContainer: React.FC<Props> = ({
     );
 };
 
-export default ManageFooterContactContainer;
+export default ManageGalleryTextContainer;

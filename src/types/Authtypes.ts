@@ -20,7 +20,7 @@ export type FormData = {
   fieldOfStudy: string;
   bio: string;
   role: string;
-  startDate:Date | string;
+  startDate: Date | string;
   endDate?: Date | string;
   isCurrent: boolean;
   facebook?: string;
@@ -33,15 +33,22 @@ export type MemberFormData = {
   lastName: string;
   about: string,
   role: string;
-  memberRole:[string],
+  memberRole: [string],
   facebook?: string;
   linkedin?: string;
 };
 
 export type footerFormData = {
-  id:any,
-  email:string,
-  phone:string | number,
-  address:string,
-  footerPara:string
+  id: any,
+  email: string,
+  phone: string | number,
+  address: string,
+  footerPara: string
+}
+
+export interface GalleryFormData {
+  title: string;
+  description: string;
+  aboutUsTitle: string;
+  aboutUsDescription: string;
 }

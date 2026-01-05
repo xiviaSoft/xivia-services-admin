@@ -11,7 +11,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
             {/* Sidebar */}
             <Box
                 sx={{
-                    width: { xs: '0', sm: "220px", md: "260px" }, flexShrink: 0, borderRight: "1px solid #e5e5e5", position: "sticky", top: 0, height: "100vh",
+                    width: { xs: '0', sm: "220px", md: "260px" }, flexShrink: 0, position: "sticky", top: 0, height: "100vh",
                 }}>
                 <AsideBar />
             </Box>

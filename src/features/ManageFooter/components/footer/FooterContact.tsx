@@ -3,6 +3,7 @@ import { collection, getDocs } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { footerFormData } from "types";
 import { db } from "libs";
+import { PageHeader } from "components";
 
 const ManageFooter = () => {
   const [data, setData] = useState<footerFormData | null>(null);
@@ -21,10 +22,13 @@ const ManageFooter = () => {
   if (!data) return null;
 
   return (
-    <ManageFooterContactContainer
-      id={docId}
-      initialData={data}
-    />
+    <>
+    <PageHeader title="Contact"/>
+      <ManageFooterContactContainer
+        id={docId}
+        initialData={data}
+      />
+    </>
   );
 };
 
