@@ -1,107 +1,156 @@
-import { CustomButton, CustomPasswordField, CustomTextField, FormWraper } from "components";
+import { CustomButton, CustomTextField } from "components";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { FormProvider, useForm } from "react-hook-form";
+import { Stack, Typography, Alert } from "@mui/material";
 import { useAuth } from "context/AuthContext";
-import { Typography } from "@mui/material";
 import { useNavigate } from "react-router";
 import { ROUTES } from "constant";
 import { db } from "libs/firebase";
+import { useState } from "react";
 
 interface SignupType {
-    email: string | any;
-    password: string | any;
+    email: string;
+    password: string;
     fullName: string;
 }
 
 const SignupForm = () => {
     const methods = useForm<SignupType>();
-    const { handleSubmit, watch, formState: { errors } } = methods;
+    const {
+        handleSubmit,
+        formState: { errors },
+    } = methods;
+
     const navigate = useNavigate();
     const { signup } = useAuth();
 
-    const checkUserExists = async (email: string) => {
-        const userRef = doc(db, "users", email);
-        const userSnap = await getDoc(userRef);
-        return userSnap.exists();
+    const [loading, setLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    const checkAdminExists = async (email: string) => {
+        const adminRef = doc(db, "admins", email);
+        const adminSnap = await getDoc(adminRef);
+        return adminSnap.exists();
     };
 
     const onSubmit = async (data: SignupType) => {
+        setErrorMessage(null);
+        setLoading(true);
+
         try {
-            const exists = await checkUserExists(data.email);
+            const exists = await checkAdminExists(data.email);
 
             if (exists) {
-                alert("User already exists. Please login.");
-                navigate(ROUTES.LOGIN);
-                return;
+                throw new Error("Admin already exists. Please login.");
             }
 
-            await signup({ email: data.email, password: data.password, fullName: '' });
+            // Create Firebase Auth user
+            await signup({
+                email: data.email,
+                password: data.password,
+                fullName: data.fullName,
+            });
 
-            //  Add user data to Firestore
-            await setDoc(doc(db, "users", data.email), {
+            // Create Firestore admin document
+            await setDoc(doc(db, "admins", data.email), {
                 fullName: data.fullName,
                 email: data.email,
-                role: "user", 
+                role: "admin",
+                status: "active",
                 createdAt: new Date(),
             });
 
-            alert("Signup successful! Please login.");
-            navigate(ROUTES.LOGIN);
+            navigate(ROUTES.ADMINS);
         } catch (error: any) {
-            console.error("Signup failed:", error.message);
+            console.error("Admin signup failed:", error);
+
+            if (error?.code === "auth/email-already-in-use") {
+                setErrorMessage("This email is already registered.");
+            } else if (error?.code === "auth/weak-password") {
+                setErrorMessage("Password must be at least 6 characters.");
+            } else {
+                setErrorMessage("Failed to create admin. Please try again.");
+            }
+        }
+        finally {
+            setLoading(false);
         }
     };
 
     return (
-        <FormWraper>
-            <FormProvider {...methods}>
-                <form onSubmit={handleSubmit(onSubmit)}>
-                    <Typography
-                        sx={{ fontSize: "32px", fontWeight: 900, textAlign: "center", mb: 2 }}
-                    >
-                        Sign Up
-                    </Typography>
+        <Stack minHeight="100vh" alignItems="center" justifyContent="center">
+            <Stack maxWidth={360} width="100%">
+                <FormProvider {...methods}>
+                    <form onSubmit={handleSubmit(onSubmit)}>
+                        <Typography
+                            sx={{
+                                fontSize: "32px",
+                                fontWeight: 900,
+                                textAlign: "center",
+                                mb: 3,
+                            }}
+                        >
+                            Create Admin
+                        </Typography>
 
-                    <CustomTextField
-                        type="text"
-                        label="Full Name"
-                        placeholder="Enter your full name"
-                        width="100%"
-                        {...methods.register("fullName", { required: "Full name is required" })}
-                    />
-                    {/* {errors.fullName && <p style={{ color: "red" }}>{errors.fullName.message}</p>}
-                    <br /> */}
+                        {errorMessage && (
+                            <Alert severity="error" sx={{ mb: 2 }}>
+                                {errorMessage}
+                            </Alert>
+                        )}
 
-                    <CustomTextField
-                        type="text"
-                        label="Email"
-                        placeholder="Enter your email address"
-                        width="100%"
-                        {...methods.register("email", {
-                            required: "Email is required",
-                            pattern: { value: /^[^@]+@[^@]+\.[^@]+$/, message: "Invalid email format" }
-                        })}
-                    />
-                    {/* {errors.email && <p style={{ color: "red" }}>{errors.email.message}</p>}
-                    <br /> */}
+                        <CustomTextField
+                            placeholder="fullName"
+                            type="text"
+                            label="Full Name"
+                            width="100%"
+                            {...methods.register("fullName", {
+                                required: "Full name is required",
+                            })}
+                        />
+                        {errors.fullName && (
+                            <Typography color="error" variant="caption">
+                                {errors.fullName.message}
+                            </Typography>
+                        )}
 
-                    <CustomTextField
-                        type="password"
-                        label="Password"
-                        placeholder="Enter your password"
-                        width="100%"
-                        {...methods.register("password", {
-                            required: "Password is required",
-                            minLength: { value: 6, message: "Password must be at least 6 characters" }
-                        })}
-                    />
-                    {/* {errors.password && <p style={{ color: "red" }}>{errors.password.message}</p>}
-                    <br /> */}
+                        <CustomTextField
+                            placeholder="password"
+                            type="email"
+                            label="Email"
+                            width="100%"
+                            {...methods.register("email", {
+                                required: "Email is required",
+                            })}
+                        />
 
-                    <CustomButton type="submit" variant="contained" title="Sign Up" fullWidth />
-                </form>
-            </FormProvider>
-        </FormWraper>
+                        <CustomTextField
+                            placeholder="password"
+                            type="password"
+                            label="Password"
+                            width="100%"
+                            {...methods.register("password", {
+                                required: "Password is required",
+                                minLength: {
+                                    value: 6,
+                                    message: "Minimum 6 characters",
+                                },
+                            })}
+                        />
+
+                        <br />
+
+                        <CustomButton
+                            type="submit"
+                            variant="contained"
+                            title={loading ? "Creating..." : "Create Admin"}
+                            fullWidth
+                            disabled={loading}
+                        />
+                    </form>
+                </FormProvider>
+            </Stack>
+        </Stack>
     );
 };
 
