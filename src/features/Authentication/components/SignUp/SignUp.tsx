@@ -1,7 +1,7 @@
 import { CustomButton, CustomTextField } from "components";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { FormProvider, useForm } from "react-hook-form";
-import { Stack, Typography, Alert } from "@mui/material";
+import { Stack, Typography, Alert, Button } from "@mui/material";
 import { useAuth } from "context/AuthContext";
 import { useNavigate } from "react-router";
 import { ROUTES } from "constant";
@@ -23,7 +23,6 @@ const SignupForm = () => {
 
     const navigate = useNavigate();
     const { signup } = useAuth();
-
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -118,7 +117,7 @@ const SignupForm = () => {
                             placeholder="password"
                             type="email"
                             label="Email"
-                            width="100%"
+                            width="100%"    
                             {...methods.register("email", {
                                 required: "Email is required",
                             })}
@@ -140,13 +139,16 @@ const SignupForm = () => {
 
                         <br />
 
-                        <CustomButton
-                            type="submit"
-                            variant="contained"
-                            title={loading ? "Creating..." : "Create Admin"}
-                            fullWidth
-                            disabled={loading}
-                        />
+                        <Stack direction={{xs:'column', sm:'row'}} justifyContent={'space-between'} alignItems={'center'} >
+                            <CustomButton
+                                type="submit"
+                                variant="contained"
+                                title={loading ? "Creating..." : "Create Admin"}
+                                fullWidth
+                                disabled={loading}
+                            />
+                            <CustomButton onClick={() => navigate(ROUTES.LOGIN)} title={'Sign In'} />
+                        </Stack>
                     </form>
                 </FormProvider>
             </Stack>
