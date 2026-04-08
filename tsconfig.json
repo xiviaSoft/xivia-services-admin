@@ -1,8 +1,8 @@
 {
    "compilerOptions": {
-      "target": "es5",
-      "baseUrl": "src",
-      "lib": ["dom", "dom.iterable", "esnext"],
+      "target": "ES2020",
+      "ignoreDeprecations": "6.0",
+      "lib": ["dom", "dom.iterable", "ESNext"],
       "allowJs": true,
       "skipLibCheck": true,
       "esModuleInterop": true,
@@ -10,8 +10,8 @@
       "strict": true,
       "forceConsistentCasingInFileNames": true,
       "noFallthroughCasesInSwitch": true,
-      "module": "esnext",
-      "moduleResolution": "node",
+      "module": "ESNext",
+      "moduleResolution": "bundler",
       "resolveJsonModule": true,
       "isolatedModules": true,
       "noEmit": true,
