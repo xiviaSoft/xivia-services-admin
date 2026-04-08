@@ -16,14 +16,14 @@ interface Services {
   key: string; // for mmatching logos until we can upload ours dynamic
 }
 
-interface Projects {
-  name: string; //project name
-  type: string; // which type of project is
-  description: string; // little details about the project
-  appType: "Mobile" | "Web-App";
-  siteUrl: string;
-  coverImage: string; // url to the image : we can use manual for now
-  key: string; // for mmatching logos until we can upload ours dynamic
+export interface Project {
+    id: string;
+    title: string;
+    client: string;
+    category: string;
+    description: string;
+    link: string;
+    Image: string;
 }
 
 interface Reviews {

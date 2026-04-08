@@ -1,13 +1,8 @@
-import {
-    TableRow,
-    TableCell,
-    Button,
-    Box,
-} from "@mui/material";
+import { TableRow, TableCell, Box, } from "@mui/material";
 import { CustomDialogBox } from "components";
-import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { AddUser } from "screens";
+import { useState } from "react";
 
 interface teamProps {
     id: string;
@@ -18,7 +13,7 @@ interface teamProps {
     children: React.ReactNode;
 }
 
-const TeamMember = ({ id, name, description, images, role, children }: teamProps) => {
+const TeamMember = ({  name, description, images, role, children }: teamProps) => {
     const firstName = name.split(" ").slice(0, 1).join();
     const lastName = name.split(' ').slice(1).join();
     const [openUpdate, setOpenUpdate] = useState(false);

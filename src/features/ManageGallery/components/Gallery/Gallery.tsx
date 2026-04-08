@@ -2,8 +2,8 @@ import ManageGalleryTextContainer from "../Contact/ManageGalleryTextContainer";
 import { collection, getDocs } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { PageHeader } from "components";
-import { db } from "libs";
 import { GalleryFormData } from "types";
+import { db } from "libs";
 
 const Gallery = () => {
   const [data, setData] = useState<GalleryFormData | null>(null);

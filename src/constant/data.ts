@@ -10,12 +10,12 @@ export const NAVDATA = [
   {
     icon: PeopleAltOutlined,
     path: "/users",
-    title: 'member'
+    title: 'employes'
   },
   {
     icon: EditOutlined,
-    path: "/safety-report",
-    title: 'project'
+    path: "/projects",
+    title: 'projects'
   },
   {
     icon: Collections,

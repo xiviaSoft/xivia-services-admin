@@ -9,7 +9,7 @@ export const ROUTES = {
   USERS: "/users",
   USERS_Profile: "/user-profile",
   ADD_USER: "/add-user",
-  SAFETY_REPORT: "/safety-report",
+  PROJECTS: "/projects",
   SAFETY_DETAILS: "/report-details",
   ANALYTICS: "/analytics",
   SETTINGS: "/settings",

@@ -5,13 +5,13 @@ import { AddAdmin, AdminCard } from "features/ManageAdmins/components";
 import { useAdmins } from "features/ManageAdmins/hooks";
 import { FormProvider, useForm } from "react-hook-form";
 import { Box, Typography } from "@mui/material";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
 import { COLORS } from "constant/color";
 import { Admin } from "collections";
-import { useState, useEffect } from "react";
-import { auth, db } from "libs";
-import { useAuth } from "context";
-import { useNavigate } from "react-router";
 import { ROUTES } from "constant";
+import { useAuth } from "context";
+import { auth, db } from "libs";
 
 export type AdminWithId = Admin & { adminId: string };
 
@@ -21,8 +21,8 @@ const ManageAdminsContainer = () => {
     const { user, loading } = useAuth();
 
     const [isOpen, setIsOpen] = useState(false);
-    const [manageHeader, setManageHeader] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [manageHeader, setManageHeader] = useState(false);
     const [selectedAdmin, setSelectedAdmin] = useState<AdminWithId | null>(null);
 
     const { data: adminsData = [], isLoading, refetch } = useAdmins();
@@ -33,7 +33,7 @@ const ManageAdminsContainer = () => {
     }, [user, loading, navigate]);
 
     const handleConfirm = methods.handleSubmit(async (data) => {
-        if (!user) return;
+        // if (!user) return;
 
         try {
             setIsSaving(true);

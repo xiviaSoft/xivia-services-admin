@@ -1,9 +1,8 @@
+import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
 import { CustomButton, CustomTextField } from "components";
 import { FormProvider, useForm } from "react-hook-form";
-import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { Box, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
+import { Box, Typography } from "@mui/material";
 import { db, } from "libs";
 
 interface AddProjectFormProps {
@@ -26,7 +25,6 @@ const AddProjectForm = ({ project, onClose }: AddProjectFormProps) => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>("");
 
-  // ⬇️ Prefill fields when project is provided (EDIT MODE)
   useEffect(() => {
     if (project) {
       methods.reset({
@@ -69,11 +67,11 @@ const AddProjectForm = ({ project, onClose }: AddProjectFormProps) => {
       };
 
       if (project) {
-        // 🔥 UPDATE MODE
+        // UPDATE 
         await updateDoc(doc(db, "gallery", project.id), payload);
         alert("Project updated successfully!");
       } else {
-        // ➕ ADD MODE
+        //  ADD MODE
         await addDoc(collection(db, "gallery"), {
           ...payload,
           createdAt: new Date(),

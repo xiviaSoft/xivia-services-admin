@@ -51,4 +51,5 @@ export interface GalleryFormData {
   description: string;
   aboutUsTitle: string;
   aboutUsDescription: string;
+  image: string
 }

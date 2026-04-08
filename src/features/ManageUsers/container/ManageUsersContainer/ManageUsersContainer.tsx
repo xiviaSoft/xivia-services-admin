@@ -9,7 +9,7 @@ import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
 import TeamMember from "features/ManageUsers/components/GetTeam/Team";
 import { ManangeAddUserContainer } from "features/ManangeAddUser";
 import { FormProvider, useForm } from "react-hook-form";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Add } from "@mui/icons-material";
 import { db } from "libs";
 
@@ -18,7 +18,7 @@ export interface Team {
     name: string;
     description: string;
     role: string;
-    images: string;
+    image: string;
 }
 
 const ManageMemberContainer = () => {
@@ -163,7 +163,7 @@ const ManageMemberContainer = () => {
                                         name={mem.name}
                                         description={mem.description}
                                         role={mem.role}
-                                        images={mem.images}
+                                        images={mem.image}
                                     >
                                         <Button
                                             variant="contained"
