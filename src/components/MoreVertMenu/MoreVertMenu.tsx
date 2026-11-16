@@ -11,10 +11,11 @@ interface MenuItemType {
 interface MoreVertMenuProps {
     items: MenuItemType[];
     icon?: React.ReactNode;
-    isAvatar?: boolean
+    isAvatar?: boolean;
+    avatarLabel?: string;
 }
 
-const MoreVertMenu = ({ items, icon, isAvatar }: MoreVertMenuProps) => {
+const MoreVertMenu = ({ items, icon, isAvatar, avatarLabel }: MoreVertMenuProps) => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -27,12 +28,21 @@ const MoreVertMenu = ({ items, icon, isAvatar }: MoreVertMenuProps) => {
 
     return (
         <>
-            <IconButton size="small" onClick={handleMenuOpen}  >
-                {icon ? icon : <MoreVertIcon />}
+            <IconButton
+                size="small"
+                onClick={handleMenuOpen}
+                aria-label={isAvatar ? "Open account menu" : "Open actions menu"}
+                aria-haspopup="menu"
+                sx={isAvatar ? { p: 0 } : undefined}
+            >
+                {isAvatar ? (
+                    <Avatar sx={{ width: 38, height: 38, bgcolor: "#D9F1E9", color: "#176B62", fontSize: 13, fontWeight: 800 }}>
+                        {avatarLabel}
+                    </Avatar>
+                ) : (
+                    icon || <MoreVertIcon />
+                )}
             </IconButton>
-            {isAvatar &&
-                <Avatar sx={{ width: 50, height: 50 }} onClick={handleMenuOpen} />
-            }
             <Menu
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl)}

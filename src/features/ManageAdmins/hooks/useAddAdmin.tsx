@@ -1,45 +1,62 @@
+import { getApps, initializeApp } from "firebase/app";
+import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
 import { auth, db, firebaseConfig } from "libs";
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
 
+interface NewAdminData {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+    phoneNumber?: string;
+}
+
+const getSecondaryAuth = () => {
+    const app = getApps().find((firebaseApp) => firebaseApp.name === "Secondary")
+        ?? initializeApp(firebaseConfig, "Secondary");
+    return getAuth(app);
+};
 
 export const useAddAdmin = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (data: any) => {
-            // 🔹 Create a secondary app to avoid affecting the main auth session
-            const secondaryApp = initializeApp(firebaseConfig, "Secondary");
-            const secondaryAuth = getAuth(secondaryApp);
+        mutationFn: async (data: NewAdminData) => {
+            const secondaryAuth = getSecondaryAuth();
 
-            // Create user using secondary auth instance
-            const userCredential = await createUserWithEmailAndPassword(
-                secondaryAuth,
-                data.email,
-                data.password
-            );
+            try {
+                const credentials = await createUserWithEmailAndPassword(
+                    secondaryAuth,
+                    data.email.trim().toLowerCase(),
+                    data.password
+                );
 
-            const newUid = userCredential.user.uid;
-
-            // Store admin data in Firestore
-            await setDoc(doc(db, "admins", newUid), {
-                adminId: newUid,
-                firstName: data.firstName,
-                lastName: data.lastName,
-                email: data.email,
-                role: data.role,
-                phoneNumber: data.phoneNumber || null,
-                createdAt: new Date(),
-                lastLogin: new Date(),
-                isActive: true,
-                createdBy: auth.currentUser?.uid || null,
-            });
-
-            // ✅ Important: sign out from the secondary auth to clean up
-            await secondaryAuth.signOut();
+                try {
+                    await setDoc(doc(db, "admins", credentials.user.uid), {
+                        adminId: credentials.user.uid,
+                        firstName: data.firstName.trim(),
+                        lastName: data.lastName.trim(),
+                        email: data.email.trim().toLowerCase(),
+                        role: data.role,
+                        phoneNumber: data.phoneNumber || null,
+                        createdAt: serverTimestamp(),
+                        lastLogin: null,
+                        isActive: true,
+                        createdBy: auth.currentUser?.uid ?? null,
+                    });
+                } catch (error) {
+                    try {
+                        await credentials.user.delete();
+                    } catch (cleanupError) {
+                        console.error("Could not remove the incomplete Firebase account:", cleanupError);
+                    }
+                    throw error;
+                }
+            } finally {
+                await secondaryAuth.signOut();
+            }
         },
 
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admins"] }),

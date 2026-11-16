@@ -1,79 +1,156 @@
-import {  onAuthStateChanged,  signOut,  signInWithEmailAndPassword,  createUserWithEmailAndPassword, User as FirebaseUser 
+import {
+  createUserWithEmailAndPassword,
+  deleteUser,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  User as FirebaseUser,
 } from "firebase/auth";
-import { createContext, useContext, ReactNode, useEffect, useState } from "react";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-
-import { useQuery } from "@tanstack/react-query";
+import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+import { ReactNode, useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Admin } from "collections";
 import { auth, db } from "libs";
+import { AuthContextData } from "./AuthContextData";
 
-interface AuthContextType {
-  user: Admin | null;
-  loading: boolean;
-  logout: () => Promise<void>;
-  login: (data: { email: string; password: string }) => Promise<void>;
-  signup: (data: { email: string; password: string; fullName: string }) => Promise<void>;
-}
+const ADMIN_ROLES = new Set([
+  "admin",
+  "main-admin",
+  "super_admin",
+  "superadmin",
+  "moderator",
+  "support",
+  "editor",
+]);
 
-const AuthContextData = createContext<AuthContextType | undefined>(undefined);
+const getAdminProfile = async (uid: string): Promise<Admin | null> => {
+  const adminRef = doc(db, "admins", uid);
+  const adminSnapshot = await getDoc(adminRef);
+
+  if (!adminSnapshot.exists()) {
+    return null;
+  }
+
+  const profile = adminSnapshot.data() as Admin & { status?: string };
+  if (
+    profile.isActive === false ||
+    profile.status === "inactive" ||
+    !ADMIN_ROLES.has(profile.role)
+  ) {
+    return null;
+  }
+
+  return { ...profile, adminId: adminSnapshot.id };
+};
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<FirebaseUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authStateError, setAuthStateError] = useState<Error | null>(null);
+  const queryClient = useQueryClient();
 
-  // Listen to Firebase Auth state
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
-    return () => unsubscribe();
+    return onAuthStateChanged(
+      auth,
+      (currentUser) => {
+        setFirebaseUser(currentUser);
+        setAuthStateError(null);
+        setAuthLoading(false);
+      },
+      (error) => {
+        setAuthStateError(error);
+        setAuthLoading(false);
+      }
+    );
   }, []);
 
-  // Fetch user data from Firestore
-  const { data: userData, isLoading } = useQuery({
-    queryKey: ["user", user?.uid],
+  const adminQuery = useQuery({
+    queryKey: ["admin", firebaseUser?.uid],
     queryFn: async () => {
-      if (!user) return null;
-      const userRef = doc(db, "admins", user.uid);
-      const userDoc = await getDoc(userRef);
-      return userDoc.exists() ? (userDoc.data() as Admin) : null;
+      if (!firebaseUser) return null;
+      return getAdminProfile(firebaseUser.uid);
     },
-    enabled: !!user
+    enabled: !!firebaseUser,
   });
 
-  // Logout
+  const login = async (data: { email: string; password: string }) => {
+    const credentials = await signInWithEmailAndPassword(
+      auth,
+      data.email.trim().toLowerCase(),
+      data.password
+    );
+
+    try {
+      const profile = await queryClient.fetchQuery({
+        queryKey: ["admin", credentials.user.uid],
+        queryFn: () => getAdminProfile(credentials.user.uid),
+      });
+
+      if (!profile) {
+        throw new Error("No active admin profile is associated with this account.");
+      }
+    } catch (error) {
+      await signOut(auth);
+      throw error;
+    }
+  };
+
+  const signup = async (data: { email: string; password: string; fullName: string }) => {
+    const fullName = data.fullName.trim();
+    if (!fullName) {
+      throw new Error("Full name is required.");
+    }
+
+    const credentials = await createUserWithEmailAndPassword(
+      auth,
+      data.email.trim().toLowerCase(),
+      data.password
+    );
+    const [firstName, ...lastNameParts] = fullName.split(/\s+/);
+    const email = data.email.trim().toLowerCase();
+    const queryKey = ["admin", credentials.user.uid];
+    const profile: Admin = {
+      adminId: credentials.user.uid,
+      email,
+      firstName,
+      lastName: lastNameParts.join(" "),
+      role: "admin",
+      isActive: true,
+      createdAt: new Date(),
+      createdBy: null,
+      lastLogin: new Date(),
+    };
+
+    try {
+      await setDoc(doc(db, "admins", credentials.user.uid), {
+        ...profile,
+        createdAt: serverTimestamp(),
+        lastLogin: serverTimestamp(),
+      });
+    } catch (error) {
+      try {
+        await deleteUser(credentials.user);
+      } catch (cleanupError) {
+        console.error("Could not remove the incomplete Firebase account:", cleanupError);
+      }
+      throw error;
+    }
+
+    await queryClient.cancelQueries({ queryKey });
+    queryClient.setQueryData(queryKey, profile);
+  };
+
   const logout = async () => {
     await signOut(auth);
-    setUser(null);
-    console.log("user logged out");
-  };
-
-  // Login
-  const login = async (data: { email: string; password: string }) => {
-    await signInWithEmailAndPassword(auth, data.email, data.password);
-  };
-
-  // Signup
-  const signup = async (data: { email: string; password: string; fullName: string }) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-    const firebaseUser = userCredential.user;
-
-    //  Add user document in Firestore
-    await setDoc(doc(db, "admins", firebaseUser.uid), {
-      uid: firebaseUser.uid,
-      email: data.email,
-      fullName: data.fullName,
-      role: "user", 
-      createdAt: new Date(),
-    });
+    queryClient.removeQueries({ queryKey: ["admin"] });
   };
 
   return (
     <AuthContextData.Provider
       value={{
-        user: userData ?? null,
-        loading: loading || isLoading,
+        user: adminQuery.data ?? null,
+        loading: authLoading || (!!firebaseUser && adminQuery.isLoading),
+        error: authStateError ?? (adminQuery.error instanceof Error ? adminQuery.error : null),
         logout,
         login,
         signup,
@@ -82,10 +159,4 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       {children}
     </AuthContextData.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContextData);
-  if (!context) throw new Error("useAuth must be used within an AuthProvider");
-  return context;
 };

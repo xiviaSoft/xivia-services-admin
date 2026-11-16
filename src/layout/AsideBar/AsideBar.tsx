@@ -1,121 +1,147 @@
-import { Drawer, IconButton, Stack, useMediaQuery, Typography } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import { Box, Drawer, IconButton, Stack, Typography, useMediaQuery } from "@mui/material";
+import { Close, Menu as MenuIcon } from "@mui/icons-material";
 import { Link, useLocation } from "react-router";
-import MenuIcon from "@mui/icons-material/Menu";
-import { COLORS } from "constant/color";
 import { NAVDATA } from "constant";
 import { useState } from "react";
 
+const SIDEBAR_WIDTH = 264;
+
 const AsideBar = () => {
     const location = useLocation();
-    const isMobile = useMediaQuery("(max-width:650px)");
+    const isMobile = useMediaQuery("(max-width:900px)");
     const [open, setOpen] = useState(false);
 
-
-    const renderNavItems = (isDrawer = false) => (
+    const sidebarContent = (
         <Stack
+            component="aside"
             sx={{
-                height: "100%",
-                width: isDrawer ? "260px" : "240px",
-                pt: "40px",
-                gap: "16px",
-                alignItems: "center",
-                backgroundColor: COLORS.primary.light,
+                boxSizing: "border-box",
+                width: SIDEBAR_WIDTH,
+                position: isMobile ? "relative" : "fixed",
+                top: 0,
+                left: 0,
+                height: isMobile ? "100%" : "100vh",
+                minHeight: isMobile ? "100%" : "100vh",
+                overflowY: "auto",
+                zIndex: isMobile ? "auto" : 1200,
+                px: 2,
+                py: 3,
+                bgcolor: "#101B30",
+                color: "#E8EEF7",
             }}
         >
-            {isDrawer && (
-                <>
-                    <Typography
-                        sx={{
-                            position: "absolute",
-                            top: 16,
-                            left: 18,
-                            fontSize: "1.2rem",
-                            fontWeight: 700,
-                            color: COLORS.white.light,
-                        }}
-                    >
-                        Menu
+            <Stack direction="row" alignItems="center" spacing={1.5} sx={{ px: 1, mb: 5 }}>
+                <Box
+                    sx={{
+                        width: 42,
+                        height: 42,
+                        flexShrink: 0,
+                        display: "grid",
+                        placeItems: "center",
+                        borderRadius: "14px",
+                        color: "#102A36",
+                        fontSize: 13,
+                        fontWeight: 900,
+                        letterSpacing: ".04em",
+                        background: "linear-gradient(135deg, #B5F2DD, #5BC4B0)",
+                    }}
+                >
+                    XS
+                </Box>
+                <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                    <Typography sx={{ fontSize: 15, fontWeight: 800, letterSpacing: ".01em" }}>
+                        Xivia Services
                     </Typography>
-
+                    <Typography sx={{ color: "#91A1B8", fontSize: 11, letterSpacing: ".12em", textTransform: "uppercase" }}>
+                        Admin workspace
+                    </Typography>
+                </Box>
+                {isMobile && (
                     <IconButton
-                        sx={{
-                            position: "absolute",
-                            top: 12,
-                            right: 12,
-                            color: COLORS.white.light,
-                        }}
+                        aria-label="Close navigation"
                         onClick={() => setOpen(false)}
+                        sx={{ color: "#D8E2EF" }}
                     >
-                        <CloseIcon />
+                        <Close />
                     </IconButton>
-                </>
-            )}
+                )}
+            </Stack>
 
-            {/* Sidebar buttons */}
-            {NAVDATA.map((navItem) => {
-                const isActive = location.pathname === navItem.path;
+            <Typography
+                sx={{
+                    px: 1.5,
+                    mb: 1.25,
+                    color: "#7F90A8",
+                    fontSize: 10,
+                    fontWeight: 800,
+                    letterSpacing: ".14em",
+                    textTransform: "uppercase",
+                }}
+            >
+                Workspace
+            </Typography>
 
-                return (
-                    <Link
-                        key={navItem.path}
-                        to={navItem.path}
-                        style={{ textDecoration: "none", width: "100%" }}
-                        onClick={() => isMobile && setOpen(false)}
-                    >
-                        <Stack
-                            direction="row"
-                            spacing={1.5}
-                            sx={{
-                                mx: "auto",
-                                width: "200px",
-                                height: "52px",
-                                px: 2,
-                                alignItems: "center",
-                                borderRadius: "12px",
-                                cursor: "pointer",
-                                transition: "250ms ease",
+            <Stack component="nav" aria-label="Main navigation" spacing={0.75}>
+                {NAVDATA.map((navItem) => {
+                    const isActive = navItem.path === "/"
+                        ? location.pathname === "/"
+                        : location.pathname === navItem.path || location.pathname.startsWith(`${navItem.path}/`);
+                    const Icon = navItem.icon;
 
-                                //  Active State
-                                backgroundColor: isActive
-                                    ? COLORS.primary.hardDark
-                                    : COLORS.primary.light,
-                                border: isActive
-                                    ? "2px solid rgba(255,255,255,0.3)"
-                                    : "2px solid transparent",
-
-                                //  Hover
-                                "&:hover": {
-                                    backgroundColor: COLORS.primary.hardDark,
-                                    transform: "translateY(-2px)",
-                                },
-                            }}
+                    return (
+                        <Link
+                            key={navItem.path}
+                            to={navItem.path}
+                            onClick={() => isMobile && setOpen(false)}
+                            style={{ color: "inherit", textDecoration: "none" }}
                         >
-                            <navItem.icon
+                            <Stack
+                                direction="row"
+                                alignItems="center"
+                                spacing={1.5}
                                 sx={{
-                                    fontSize: "24px",
-                                    color: isActive
-                                        ? COLORS.white.light
-                                        : COLORS.white.thin,
-                                }}
-                            />
-
-                            <Typography
-                                sx={{
-                                    fontSize: "0.95rem",
-                                    fontWeight: 600,
-                                    color: isActive
-                                        ? COLORS.white.light
-                                        : COLORS.white.thin,
-                                    textTransform: "capitalize",
+                                    minHeight: 46,
+                                    px: 1.5,
+                                    borderRadius: "12px",
+                                    borderLeft: isActive ? "3px solid #85E2C3" : "3px solid transparent",
+                                    color: isActive ? "#B7F0D9" : "#A8B5C8",
+                                    bgcolor: isActive ? "rgba(105, 208, 177, .13)" : "transparent",
+                                    transition: "background-color 160ms ease, color 160ms ease",
+                                    "&:hover": {
+                                        color: "#F4F7FC",
+                                        bgcolor: "rgba(255,255,255,.07)",
+                                    },
                                 }}
                             >
-                                {navItem.title}
-                            </Typography>
-                        </Stack>
-                    </Link>
-                );
-            })}
+                                <Icon sx={{ fontSize: 20 }} />
+                                <Typography sx={{ fontSize: 13, fontWeight: isActive ? 700 : 550 }}>
+                                    {navItem.title}
+                                </Typography>
+                            </Stack>
+                        </Link>
+                    );
+                })}
+            </Stack>
+
+            <Box sx={{ flexGrow: 1 }} />
+
+            <Box
+                sx={{
+                    mx: 0.5,
+                    px: 1.5,
+                    py: 1.75,
+                    borderRadius: "14px",
+                    border: "1px solid rgba(255,255,255,.09)",
+                    bgcolor: "rgba(255,255,255,.035)",
+                }}
+            >
+                <Typography sx={{ fontSize: 12, fontWeight: 700, color: "#D9E5F3" }}>
+                    Admin console
+                </Typography>
+                <Typography sx={{ mt: 0.5, color: "#8797AE", fontSize: 11, lineHeight: 1.5 }}>
+                    Manage your platform from one place.
+                </Typography>
+            </Box>
         </Stack>
     );
 
@@ -123,52 +149,40 @@ const AsideBar = () => {
         return (
             <>
                 <IconButton
-                    sx={{
-                        backgroundColor: COLORS.primary.light,
-                        color: COLORS.white.light,
-                        borderRadius: "10px",
-                        padding: "10px",
-                        margin: "10px",
-                        "&:hover": {
-                            backgroundColor: COLORS.primary.hardDark,
-                        },
-                    }}
+                    aria-label="Open navigation"
                     onClick={() => setOpen(true)}
+                    sx={{
+                        position: "fixed",
+                        top: 14,
+                        left: 16,
+                        zIndex: 1300,
+                        width: 42,
+                        height: 42,
+                        color: "#F4F7FC",
+                        bgcolor: "#101B30",
+                        borderRadius: "13px",
+                        boxShadow: "0 6px 18px rgba(16, 27, 48, .2)",
+                        "&:hover": { bgcolor: "#1E3150" },
+                    }}
                 >
-                    <MenuIcon sx={{ fontSize: 26 }} />
+                    <MenuIcon />
                 </IconButton>
-
                 <Drawer
                     anchor="left"
                     open={open}
                     onClose={() => setOpen(false)}
-                    PaperProps={{
-                        sx: {
-                            width: "260px",
-                            backgroundColor: COLORS.primary.light,
-                        },
-                    }}
+                    PaperProps={{ sx: { width: SIDEBAR_WIDTH, bgcolor: "#101B30" } }}
                 >
-                    {renderNavItems(true)}
+                    {sidebarContent}
                 </Drawer>
             </>
         );
     }
 
-
     return (
-        <Stack
-            component="aside"
-            sx={{
-                position: "sticky",
-                top: 0,
-                height: "100vh",
-                minWidth: "240px",
-                zIndex: 1200,
-            }}
-        >
-            {renderNavItems()}
-        </Stack>
+        <Box sx={{ width: SIDEBAR_WIDTH, flexShrink: 0 }}>
+            {sidebarContent}
+        </Box>
     );
 };
 

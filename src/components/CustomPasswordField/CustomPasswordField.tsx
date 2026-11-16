@@ -3,7 +3,6 @@ import { Controller, useFormContext, RegisterOptions } from "react-hook-form";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import Visibility from "@mui/icons-material/Visibility";
 import React, { useState, useCallback } from "react";
-import { COLORS } from "constant/color";
 
 interface CustomPasswordFieldProps {
     name: string;
@@ -53,7 +52,7 @@ const CustomPasswordField: React.FC<CustomPasswordFieldProps> = ({
     return (
         <Box width={{ md: width, sm: width, xs: "100%" }}>
             {label && (
-                <Typography sx={{ fontSize: "12px", fontWeight: 700, color: COLORS.primary.hardDark }}>
+                <Typography sx={{ mb: "7px", fontSize: "12px", fontWeight: 700, color: "#596A80" }}>
                     {label}
                 </Typography>
             )}
@@ -71,6 +70,8 @@ const CustomPasswordField: React.FC<CustomPasswordFieldProps> = ({
                         {...props}
                         fullWidth
                         error={!!fieldState.error}
+                        helperText={showHelperText ? fieldState.error?.message : ""}
+                        inputProps={{ maxLength, readOnly, onInput: handleInputChange }}
                         type={showPassword ? "text" : "password"}
                         InputProps={{
                             endAdornment: (
@@ -85,22 +86,19 @@ const CustomPasswordField: React.FC<CustomPasswordFieldProps> = ({
                             ),
                             sx: {
                                 width: width || "285px",
-                                backgroundColor: COLORS.gray.lighter,
+                                backgroundColor: "#F8FAFC",
                                 height: height || "56px",
-                                "& fieldset": { border: "none" },
-
-                                "& .MuiOutlinedInput-input:focus": {
-                                    outline: "none",
-                                },
-                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "transparent !important",
-                                },
-                                "&.Mui-focused": {
-                                    boxShadow: "none !important",
-                                }
+                                borderRadius: "12px",
+                                "& fieldset": { border: "1px solid #E1E8F0" },
+                                "&:hover fieldset": { borderColor: "#B9C9D7" },
+                                "&.Mui-focused fieldset": { borderColor: "#167D75 !important" },
                             },
                         }}
-
+                        onBlur={(event) => {
+                            field.onBlur();
+                            onBlur?.(event);
+                        }}
+                        onFocus={onFocus}
                     />
                 )}
             />

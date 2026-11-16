@@ -7,7 +7,7 @@ interface CustomDialogBoxProps {
     title: string;
     children: React.ReactNode;
     onClose: () => void;
-    onConfirm?: (data: any) => any | void;
+    onConfirm?: () => void | Promise<void>;
     confirmText?: string;
     cancelText?: string;
     icon?: React.ReactNode;
@@ -31,11 +31,13 @@ export const CustomDialogBox: React.FC<CustomDialogBoxProps> = ({
             maxWidth="md"   
             sx={{
                 "& .MuiPaper-root": {
-                    backgroundColor: COLORS.white.light,
-                    borderRadius: "16px",
-                    width: "100%",       
-                    padding: { md: "40px", sm: "30px", xs: "20px" },
+                    backgroundColor: "#FFFFFF",
+                    border: "1px solid #E6EBF2",
+                    borderRadius: "20px",
+                    width: "100%",
+                    padding: { md: "30px", sm: "26px", xs: "18px" },
                     margin: {xs:1, md:0},
+                    boxShadow: "0 24px 70px rgba(20, 34, 55, .18)",
                 },
             }}
         >
@@ -66,7 +68,7 @@ export const CustomDialogBox: React.FC<CustomDialogBoxProps> = ({
                     </Icon>
                 )}
 
-                <Typography sx={{ fontSize: "20px", fontWeight: 700, color: COLORS.primary.main }}>
+                <Typography sx={{ fontSize: "19px", fontWeight: 800, color: "#1E2A3D" }}>
                     {title}
                 </Typography>
             </Box>
@@ -102,7 +104,7 @@ export const CustomDialogBox: React.FC<CustomDialogBoxProps> = ({
                 {children}
             </DialogContent>
 
-            <DialogActions sx={{ mt: 2 }}>
+            <DialogActions sx={{ mt: 2, gap: 1, "& > :not(style) ~ :not(style)": { ml: 0 } }}>
                 {onConfirm && <CustomButton title={confirmText} onClick={onConfirm} />}
                 <CustomButton title={cancelText} onClick={onClose} variant="outlined" />
             </DialogActions>

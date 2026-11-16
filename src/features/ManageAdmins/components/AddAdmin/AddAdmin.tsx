@@ -1,15 +1,12 @@
 import { CustomPasswordField, CustomSelect, CustomTextField } from "components";
 import { Stack } from "@mui/material";
 import { ADMIN_ROLE } from "constant";
-import { useFormContext } from "react-hook-form";
 
 interface AddAdminProps {
     mode?: "add" | "edit";
 }
 
 const AddAdmin = ({ mode = "add" }: AddAdminProps) => {
-    const { formState: { errors } } = useFormContext();
-
     return (
         <Stack spacing={2}>
             <CustomSelect
@@ -20,7 +17,7 @@ const AddAdmin = ({ mode = "add" }: AddAdminProps) => {
                     label: item,
                     value: item,
                 }))}
-                // required
+                isRequired
             />
             
             <CustomTextField
@@ -65,7 +62,18 @@ const AddAdmin = ({ mode = "add" }: AddAdminProps) => {
                     placeholder="Password"
                     width="100%"
                     maxLength={25}
-                    // required
+                    rules={{
+                        required: "Password is required",
+                        minLength: {
+                            value: 8,
+                            message: "Password must be at least 8 characters",
+                        },
+                        validate: (value: string) =>
+                            (/[A-Z]/.test(value) &&
+                                /[a-z]/.test(value) &&
+                                /[0-9!@#$%^&*(),.?":{}|<>]/.test(value)) ||
+                            "Use uppercase and lowercase letters, and at least one number or symbol",
+                    }}
                 />
             )}
         </Stack>

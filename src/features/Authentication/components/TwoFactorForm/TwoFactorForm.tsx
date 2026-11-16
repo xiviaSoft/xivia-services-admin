@@ -1,21 +1,17 @@
-import { Typography } from '@mui/material'
-import { CustomButton, FormWraper } from 'components'
-
-
+import { Alert, Typography } from "@mui/material";
+import { FormWraper } from "components";
 
 const TwoFactorForm = () => {
     return (
         <FormWraper>
-            <Typography sx={{ fontSize: '24px', fontWeight: '32px', textAlign: 'center' }}>
+            <Typography sx={{ fontSize: "24px", fontWeight: 700, textAlign: "center", mb: 2 }}>
                 Two-Factor Authentication
             </Typography>
-            <Typography variant='body2' sx={{ textAlign: 'center', marginBottom: '20px' }}>
-                Enter your phone number to allow Two-Factor
-                Authentication
-            </Typography>
-            <CustomButton title='Send code' variant='contained' fullWidth type='submit' />
+            <Alert severity="info">
+                Two-factor authentication is not configured for this application yet.
+            </Alert>
         </FormWraper>
-    )
-}
+    );
+};
 
-export default TwoFactorForm
+export default TwoFactorForm;

@@ -1,10 +1,9 @@
-import { COLORS } from "constant/color";
-import { useEffect, useState } from "react";
-import AddAdmin from "../AddAdmin/AddAdmin";
-import { Box, Stack, Typography } from "@mui/material";
-import { FormProvider, useForm } from "react-hook-form";
+import { Avatar, Box, Chip, Divider, Paper, Stack, Typography } from "@mui/material";
+import { EmailOutlined, PhoneOutlined } from "@mui/icons-material";
 import { CustomDialogBox, MoreVertMenu } from "components";
-import { deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { deleteDoc, doc } from "firebase/firestore";
+import { useToast } from "context";
+import { useState } from "react";
 import { db } from "libs";
 
 type AdminProps = {
@@ -15,143 +14,122 @@ type AdminProps = {
         firstName: string;
         lastName: string;
         phoneNumber?: string;
+        isActive?: boolean;
     };
     onEdit: () => void;
+    onDelete: () => void;
 };
 
-const AdminCard = ({ admin }: AdminProps) => {
-    const methods = useForm({
-        defaultValues: {
-            firstName: admin.firstName,
-            lastName: admin.lastName,
-            email: admin.email,
-            role: admin.role,
-            phoneNumber: admin.phoneNumber || "",
-        },
-    });
-
-    const [showEdit, setShowEdit] = useState(false);
+const AdminCard = ({ admin, onEdit, onDelete }: AdminProps) => {
     const [showDelete, setShowDelete] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
-    const [isUpdating, setIsUpdating] = useState(false);
-
-    const menuItems = [
-        { label: "Edit", action: () => setShowEdit(true) },
-        { label: "Delete", action: () => setShowDelete(true) },
-    ];
+    const { showToast } = useToast();
+    const fullName = [admin.firstName, admin.lastName].filter(Boolean).join(" ") || "Admin";
+    const initials = `${admin.firstName?.[0] ?? "A"}${admin.lastName?.[0] ?? ""}`.toUpperCase();
+    const isActive = admin.isActive !== false;
 
     const handleDeleteAdmin = async () => {
         try {
             setIsDeleting(true);
-            const adminRef = doc(db, "admins", admin.adminId);
-            await deleteDoc(adminRef);
+            await deleteDoc(doc(db, "admins", admin.adminId));
             setShowDelete(false);
-            // Optionally refresh the list or show success message
+            onDelete();
+            showToast("Admin removed.", "success");
         } catch (error) {
-            console.error("Error deleting admin:", error);
+            showToast(error instanceof Error ? error.message : "Unable to remove this admin.", "error");
         } finally {
             setIsDeleting(false);
         }
     };
 
-    const handleEditAdmin = async (data: any) => {
-        try {
-            setIsUpdating(true);
-            const adminRef = doc(db, "admins", admin.adminId);
-            await updateDoc(adminRef, data);
-            setShowEdit(false);
-            methods.reset();
-            // Optionally refresh the list or show success message
-        } catch (error) {
-            console.error("Error updating admin:", error);
-        } finally {
-            setIsUpdating(false);
-        }
-    };
-
-    useEffect(() => {
-        if (showEdit) {
-            methods.reset({
-                firstName: admin.firstName,
-                lastName: admin.lastName,
-                email: admin.email,
-                role: admin.role,
-                phoneNumber: admin.phoneNumber || "",
-            });
-        }
-    }, [showEdit, admin, methods]);
+    const menuItems = [
+        { label: "Edit details", action: onEdit },
+        { label: "Remove admin", action: () => setShowDelete(true) },
+    ];
 
     return (
         <>
-            <Stack
+            <Paper
+                elevation={0}
                 sx={{
-                    height: "301px",
-                    width: { md: '190px', sm: '45%', xs: '98%' },
-                    padding: "30px 10px",
-                    boxShadow: "rgba(0, 0, 0, 0.2) 0px 3px 3px -2px, rgba(0, 0, 0, 0.14) 0px 3px 4px 0px, rgba(0, 0, 0, 0.12) 0px 1px 8px 0px",
-                    borderRadius: "12px",
-                    alignItems: "center",
-                    gap: "24px",
+                    minWidth: 0,
+                    p: 2.5,
+                    border: "1px solid #E6EBF2",
+                    borderRadius: "18px",
+                    bgcolor: "#FFFFFF",
+                    transition: "transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease",
+                    "&:hover": {
+                        transform: "translateY(-3px)",
+                        borderColor: "#D5E4E7",
+                        boxShadow: "0 14px 32px rgba(25, 45, 70, .08)",
+                    },
                 }}
             >
-                <Stack direction={"column"} sx={{ width: "100%", alignItems: "center" }}>
-                    <Box sx={{ display: 'flex', alignSelf: 'end' }}>
-                        <MoreVertMenu items={menuItems} />
-                    </Box>
-
-                    <Box
-                        component={"img"}
-                        src="/assets/images/adminProfile.png"
-                        sx={{ width: "100px", height: "100px", objectFit: "cover" }}
-                    />
-                </Stack>
-
-                <Box>
-                    <Typography
+                <Stack direction="row" alignItems="center" spacing={1.5}>
+                    <Avatar
                         sx={{
-                            fontSize: "18px",
+                            width: 48,
+                            height: 48,
+                            bgcolor: "#DDF3EC",
+                            color: "#176B62",
+                            fontSize: 14,
                             fontWeight: 800,
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            maxWidth: "150px",
-                            display: "block",
-                            textAlign: "center",
                         }}
                     >
-                        {`${admin.firstName} ${admin.lastName}`}
-                    </Typography>
-                    <Typography
-                        variant="body2"
-                        sx={{ color: COLORS.black.darkGray, textAlign: 'center' }}
-                    >
-                        {admin.role}
-                    </Typography>
-                </Box>
+                        {initials}
+                    </Avatar>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography noWrap sx={{ color: "#1E2A3D", fontSize: 14, fontWeight: 750 }}>
+                            {fullName}
+                        </Typography>
+                        <Typography noWrap sx={{ mt: 0.3, color: "#8491A3", fontSize: 11 }}>
+                            {admin.role}
+                        </Typography>
+                    </Box>
+                    <MoreVertMenu items={menuItems} />
+                </Stack>
 
-                <Typography variant="body2">{admin.email}</Typography>
-            </Stack>
+                <Divider sx={{ my: 2, borderColor: "#EEF1F5" }} />
+
+                <Stack spacing={1.2}>
+                    <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
+                        <EmailOutlined sx={{ color: "#8A98AA", fontSize: 17 }} />
+                        <Typography noWrap title={admin.email} sx={{ color: "#566478", fontSize: 12 }}>
+                            {admin.email}
+                        </Typography>
+                    </Stack>
+                    {admin.phoneNumber && (
+                        <Stack direction="row" alignItems="center" spacing={1}>
+                            <PhoneOutlined sx={{ color: "#8A98AA", fontSize: 17 }} />
+                            <Typography sx={{ color: "#566478", fontSize: 12 }}>
+                                {admin.phoneNumber}
+                            </Typography>
+                        </Stack>
+                    )}
+                </Stack>
+
+                <Chip
+                    size="small"
+                    label={isActive ? "Active" : "Inactive"}
+                    sx={{
+                        mt: 2.25,
+                        height: 25,
+                        bgcolor: isActive ? "#E5F6EF" : "#F1F3F6",
+                        color: isActive ? "#25805E" : "#687588",
+                        fontSize: 11,
+                        fontWeight: 700,
+                    }}
+                />
+            </Paper>
 
             <CustomDialogBox
                 open={showDelete}
-                title="Delete Admin"
+                title="Remove admin"
                 onClose={() => setShowDelete(false)}
                 onConfirm={handleDeleteAdmin}
-                confirmText={isDeleting ? "Deleting..." : "Yes, I confirm"}
+                confirmText={isDeleting ? "Removing..." : "Remove admin"}
             >
-                {`Are you sure you want to delete the admin "${admin.firstName} ${admin.lastName}"?`}
-            </CustomDialogBox>
-
-            <CustomDialogBox
-                open={showEdit}
-                title="Update Admin"
-                onClose={() => setShowEdit(false)}
-                onConfirm={methods.handleSubmit(handleEditAdmin)}
-                confirmText={isUpdating ? "Updating..." : "Update Admin"}
-            >
-                <FormProvider {...methods}>
-                    <AddAdmin mode="edit" />
-                </FormProvider>
+                {`Remove ${fullName} from the admin team?`}
             </CustomDialogBox>
         </>
     );

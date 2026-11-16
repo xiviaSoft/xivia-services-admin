@@ -2,7 +2,6 @@ import { Controller, useFormContext, RegisterOptions } from "react-hook-form";
 import { Box, TextField, InputAdornment, Typography } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import React, { useCallback } from "react";
-import { COLORS } from "constant/color";
 
 interface CustomTextFieldProps {
     name: string;
@@ -10,7 +9,7 @@ interface CustomTextFieldProps {
     type: string;
     width?: string;
     height?: string;
-    multiline?: any;
+    multiline?: boolean;
     minRows?: number;
     maxRows?: number;
     readOnly?: boolean;
@@ -131,8 +130,8 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({
                     sx={{
                         fontSize: "12px",
                         fontWeight: 700,
-                        color: COLORS.primary.hardDark,
-                        m: "8px",
+                        color: "#596A80",
+                        mb: "7px",
                     }}
                 >
                     {label}
@@ -168,11 +167,18 @@ const CustomTextField: React.FC<CustomTextFieldProps> = ({
                             endAdornment: !isColorField ? endAdornment : null,
 
                             sx: {
-                                backgroundColor: COLORS.gray.lighter,
-                                border: "none",
+                                backgroundColor: "#F8FAFC",
+                                borderRadius: "12px",
                                 height: multiline ? "auto" : height || (isColorField ? "48px" : "56px"),
                                 paddingRight: isColorField ? 0 : "8px",
-                                "& fieldset": { border: isColorField ? "1px solid #ccc" : "none" },
+                                "& fieldset": {
+                                    border: isColorField ? "1px solid #D6DEE8" : "1px solid #E1E8F0",
+                                },
+                                "&:hover fieldset": { borderColor: "#B9C9D7" },
+                                "&.Mui-focused fieldset": {
+                                    borderColor: "#167D75 !important",
+                                    borderWidth: "1px",
+                                },
 
                                 ...(isColorField && {
                                     padding: 0,
